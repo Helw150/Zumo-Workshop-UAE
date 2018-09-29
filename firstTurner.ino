@@ -115,8 +115,7 @@ void loop()
   }
   Serial.println(targetPosition);
   int error = position - targetPosition;
-  int returnValue = error / 4 + 6 * (error - lastError);
-  int speedDifference = decideTurn(position, numWhite, lastError, turnLeft);
+  int speedDifference = error / 4 + 6 * (error - lastError);
 
   lastError = error;
 

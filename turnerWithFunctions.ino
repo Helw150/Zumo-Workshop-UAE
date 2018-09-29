@@ -21,7 +21,7 @@
 ZumoBuzzer buzzer;
 ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
-Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS34725_GAIN_1X);
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_1X);
 Pushbutton button(ZUMO_BUTTON);
 int lastError = 0;
 
@@ -85,19 +85,21 @@ void setup()
   Serial.begin(9600);
 }
 
-bool detectColor(){
-  uint16_t r, g, b, c, colorTemp, lux;
-  tcs.getRawData(&r, &g, &b, &c);
+bool detectColor(){  
   
-  if(g > r && g > b && g > 5000){
-    return true;
-  } else {
-    return false;
-  }
-}
+  uint16_t r, g, b, c, colorTemp, lux;                                                                                                                                                                      
+  tcs.getRawData(&r, &g, &b, &c);                                                                                                                                                                           
+  Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
+  Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
+  Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
+  if(g > r && g > b && g > 5000){                                                                                                                                                                           
+    return true;                                                                                                                                                                                            
+  } else {                                                                                                                                                                                                  
+    return false;                                                                                                                                                                                           
+  }                                                                                                                                                                                                         
+}   
 
-int decideTurn(int position, int numWhite, int lastError, bool turnLeft)
-{
+int decideTurn(int position, int numWhite, bool turnLeft) {
   int targetPosition = 2500;
   if(numWhite > 3) {
     if(turnLeft) {
@@ -108,7 +110,7 @@ int decideTurn(int position, int numWhite, int lastError, bool turnLeft)
   }
   Serial.println(targetPosition);
   int error = position - targetPosition;
-  int returnValue = error / 4 + 6 * (error - lastError);
+  int returnValue = error / 6 + 4 * (error - lastError);
   lastError = error;
   return returnValue;
 }
@@ -125,7 +127,7 @@ void loop()
   int numWhite = 0;
   for(int i = 0; i < 6; i++){
     Serial.println(sensors[i]);
-    if(sensors[i] > 0){
+    if(sensors[i] > 500){
       numWhite++;
     }
   }
@@ -136,8 +138,10 @@ void loop()
   // constant of 6, which should work decently for many Zumo motor choices.
   // You probably want to use trial and error to tune these constants for
   // your particular Zumo and line course.
+  
+  
   bool turnLeft = detectColor();
-  int speedDifference = decideTurn(position, numWhite, lastError, turnLeft);
+  int speedDifference = decideTurn(position, numWhite, turnLeft);
 
   // Get individual motor speeds.  The sign of speedDifference
   // determines if the robot turns left or right.
